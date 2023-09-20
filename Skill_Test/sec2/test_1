@@ -1,0 +1,48 @@
+#include <M5Stack.h>
+// by kp
+int ledPin = 21;
+int ledState = LOW;
+const int nG4 = 392;
+int readData = 0;
+
+void setup() {
+    // put your setup code here, to run once:
+    M5.begin();
+    pinMode(ledPin, OUTPUT);
+    digitalWrite(ledPin, ledState);
+    M5.update();
+}
+
+void loop() {
+    // put your main code here, to run repeatedly:
+    if (Serial.available() > 0) {
+        Serial.print(">");
+        readData = Serial.read();
+        Serial.write(readData);
+        Serial.println(" ");
+        if (readData >= 65 && readData <= 90) {
+            ledState = HIGH;
+            digitalWrite(ledPin, ledState);
+            delay(100);
+            ledState = LOW;
+            digitalWrite(ledPin, ledState);
+            delay(100);
+            ledState = HIGH;
+            digitalWrite(ledPin, ledState);
+            delay(100);
+            ledState = LOW;
+            digitalWrite(ledPin, ledState);
+            delay(100);
+            ledState = HIGH;
+            digitalWrite(ledPin, ledState);
+            delay(100);
+            ledState = LOW;
+            digitalWrite(ledPin, ledState);
+            delay(100);
+        } else {
+            M5.Speaker.tone(nG4);
+            delay(1000);
+            M5.Speaker.mute();
+        }
+    }
+}
