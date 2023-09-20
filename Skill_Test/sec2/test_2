@@ -1,0 +1,55 @@
+#include <M5Stack.h>
+// by kp
+int con = 5;
+int ledPin = 21;
+int ledState = LOW;
+const int nG4 = 392;
+
+void setup() {
+    // put your setup code here, to run once:
+    M5.begin();
+    pinMode(ledPin, OUTPUT);
+    digitalWrite(ledPin, ledState);
+    M5.Lcd.setTextSize(5);
+    M5.Lcd.setTextColor(0xB7E0);
+    M5.Lcd.print(con);
+    M5.update();
+}
+
+void loop() {
+    // put your main code here, to run repeatedly:
+    M5.update();
+    if (M5.BtnA.wasPressed()) {
+        while (con != 0) {
+            M5.Lcd.clear();
+            M5.Lcd.setCursor(0, 0);
+            con = con - 1;
+            M5.Lcd.print(con);
+            delay(500);
+        }
+        if (con == 0) {
+            M5.Speaker.tone(nG4);
+            delay(1000);
+            M5.Speaker.mute();
+        }
+    }
+    if (M5.BtnC.wasPressed()) {
+        if (con != 10) {
+            M5.Lcd.clear();
+            M5.Lcd.setCursor(0, 0);
+            con = con + 1;
+            M5.Lcd.print(con);
+        }
+        if (con == 10) {
+            M5.Speaker.tone(nG4);
+            delay(1000);
+            M5.Speaker.mute();
+        }
+    }
+    if (M5.BtnB.wasPressed()) {
+        M5.Lcd.clear();
+        M5.Lcd.setCursor(0, 0);
+        con = 5;
+        M5.Lcd.print(con);
+    }
+}
