@@ -1,0 +1,30 @@
+#include <M5Stack.h>
+
+int ledPin = 21;
+int ledState = LOW;
+int readData = 0;
+
+void setup() {
+    M5.begin();
+    pinMode(ledPin, OUTPUT);
+    digitalWrite(ledPin, ledState);
+    M5.update();
+}
+
+void loop() {
+    M5.update();
+    if (Serial.available() > 0) {
+        readData = Serial.read();
+        if (readData >= 48 && readData <= 57) {
+            M5.Speaker.tone(262);
+            delay(1000);
+            M5.Speaker.mute();
+        } else {
+            for (int i = 1; i <= 6; i++) {
+                ledState = !ledState;
+                digitalWrite(ledPin, ledState);
+                delay(500);
+            }
+        }
+    }
+}
