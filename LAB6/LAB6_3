@@ -1,0 +1,76 @@
+#include <Arduino.h>
+#include <WiFi.h>
+#include <WiFiMulti.h>
+#include <HTTPClient.h>
+#include <M5Stack.h>
+
+#define USE_SERIAL Serial
+
+WiFiMulti wifiMulti;
+
+void setup() {
+
+    USE_SERIAL.begin(115200);
+
+    USE_SERIAL.println();
+    USE_SERIAL.println();
+    USE_SERIAL.println();
+
+    for (uint8_t t = 4; t > 0; t--) {
+        USE_SERIAL.printf("[SETUP] WAIT %d...\n", t);
+        USE_SERIAL.flush();
+        delay(1000);
+    }
+
+    wifiMulti.addAP("Sun", "**********");
+}
+
+void loop() {
+    // wait for WiFi connection
+    if ((wifiMulti.run() == WL_CONNECTED)) {
+
+        HTTPClient http;
+
+        USE_SERIAL.print("[HTTP] begin...\n");
+        // configure traged server and url
+        // http.begin("https://www.howsmyssl.com/a/check", ca); //HTTPS
+        M5.update();
+        if (M5.BtnA.wasPressed()) {
+            http.begin("http://ip-api.com/json/161.200.192.243"); // HTTP
+        }
+        if (M5.BtnB.wasPressed()) {
+            http.begin("http://ip-api.com/json/202.47.249.7"); // HTTP
+        }
+        if (M5.BtnC.wasPressed()) {
+            http.begin("http://ip-api.com/json/203.131.212.198"); // HTTP
+        }
+
+        USE_SERIAL.print("[HTTP] GET...\n");
+        // start connection and send HTTP header
+        int httpCode = http.GET();
+
+        // httpCode will be negative on error
+        if (httpCode > 0) {
+            // HTTP header has been send and Server response header has been handled
+            USE_SERIAL.printf("[HTTP] GET... code: %d\n", httpCode);
+
+            // file found at server
+            if (httpCode == HTTP_CODE_OK) {
+                String payload = http.getString();
+                USE_SERIAL.println(payload);
+            }
+        } else {
+            USE_SERIAL.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+        }
+        http.end();
+    }
+    delay(5000);
+}
+
+/*
+{"status":"success","country":"Thailand","countryCode":"TH","region":"10","regionName":"Bangkok","city":"Pathum Wan","zip":"10330","lat":13.7399,"lon":100.531,"timezone":"Asia/Bangkok","isp":"Chulalongkorn University","org":"Chulalongkorn University","as":"AS3839 Chulalongkorn University","query":"161.200.192.243"}
+
+{"status":"success","country":"Thailand","countryCode":"TH","region":"10","regionName":"Bangkok","city":"Samphanthawong","zip":"10100","lat":13.7215,"lon":100.515,"timezone":"Asia/Bangkok","isp":"CAT Telecom Public Company Limited","org":"CATISP CoreNetwork","as":"AS9931 The Communication Authoity of Thailand, CAT","query":"202.47.249.7"}
+
+{"status":"success","country":"Thailand","countryCode":"TH","region":"10","regionName":"Bangkok","city":"Bangkok","zip":"10600","lat":13.733,"lon":100.4865,"timezone":"Asia/Bangkok","isp":"Thammasat University","org":"Thammasat University","as":"AS37992 Thammasat University in thailand","query":"203.131.212.198"}
+*/
