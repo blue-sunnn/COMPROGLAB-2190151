@@ -69,6 +69,7 @@ void event_DHT()
 
     Blynk.virtualWrite(V1, h);
     Blynk.virtualWrite(V2, c);
+    Blynk.virtualWrite(V3, f);
 }
 
 void setup()
