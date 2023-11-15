@@ -1,0 +1,204 @@
+// information from Blynk Device
+#define BLYNK_TEMPLATE_ID           "*************"
+#define BLYNK_TEMPLATE_NAME         "Quickstart Template"
+#define BLYNK_AUTH_TOKEN            "*********************************"
+#define BLYNK_PRINT Serial
+// include necessary library
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h>
+#include <M5Stack.h>
+#include "DHT.h"
+
+// LED
+int ledPin1 = 3;
+int ledPin2 = 1;
+
+// DHT
+#define DHTPIN 21
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE);
+
+// Wifi
+char ssid[] = "***";
+char pass[] = "**********";
+
+// Blynk
+BlynkTimer timer;
+
+// Btn Blynk status
+int is_ON;
+
+// note frequency
+const int nB2 = 123;
+const int nC5 = 523, nF5 = 698;
+const int bE5 = 622, bE6 = 1245;
+const int bA5 = 831, bA6 = 1661;
+const int bB5 = 932;
+
+// boot notes & duration
+const int boot_notes[] = {bE6, bE5, bB5, bA5, bE6, bB5};
+const int boot_duration[] = {450, 150, 600, 600, 600, 900};
+
+// shutdown notes & duration
+const int shutdown_notes[] = {bA6, bE6, bA5, bB5};
+const int shutdown_duration[] = {600, 600, 600, 600};
+
+// LED color 
+const int ledPin[] = {ledPin1, ledPin2, ledPin1, ledPin2, ledPin1, ledPin2};
+
+void play_boot()
+{
+    for (int i = 0; i < 6; i++)
+    {
+        M5.Speaker.tone(boot_notes[i]);
+        digitalWrite(ledPin[i], HIGH);
+        delay(boot_duration[i]);
+        digitalWrite(ledPin[i], LOW);
+    }
+    M5.Speaker.mute();
+}
+
+void play_shutdown()
+{
+    for (int j = 0; j < 4; j++)
+    {
+        M5.Speaker.tone(shutdown_notes[j]);
+        digitalWrite(ledPin[j], HIGH);
+        delay(shutdown_duration[j]);
+        digitalWrite(ledPin[j], LOW);
+    }
+    M5.Speaker.mute();
+}
+
+void OGreen()
+{
+    // print O on Lcd screen
+    M5.Lcd.fillScreen(GREEN);
+    M5.Lcd.drawChar('O', 145, 90);
+    // sound
+    M5.Speaker.tone(nF5);
+    delay(100);
+    M5.Speaker.tone(nC5);
+    delay(100);
+    M5.Speaker.mute();
+}
+
+void XRed()
+{
+    // print X on Lcd screen
+    M5.Lcd.fillScreen(RED);
+    M5.Lcd.drawChar('X', 145, 90);
+    // sound
+    M5.Speaker.tone(nB2);
+    delay(100);
+    M5.Speaker.tone(nB2);
+    delay(100);
+    M5.Speaker.mute();
+}
+
+void DHT()
+{
+    delay(2000);
+    float h = dht.readHumidity();
+    float c = dht.readTemperature();
+    float f = dht.readTemperature(true);
+    if (isnan(h) || isnan(c) || isnan(f))
+        Serial.println(F("Failed to read from DHT sensor!"));
+    // update V1, V2, V3 on Blynk
+    Blynk.virtualWrite(V1, h);
+    Blynk.virtualWrite(V2, c);
+    Blynk.virtualWrite(V3, f);
+
+    if (c <= 25) OGreen();
+    if (c > 25) XRed();
+}
+
+// Called every time Virtual Pin 0 changes
+BLYNK_WRITE(V0)
+{
+    // set incoming value from pin V0
+    int value = param.asInt();
+    // change Blynk status and play sound
+    if (value == 0)
+    {
+        is_ON = 0;
+        play_shutdown();
+        delay(500);
+        digitalWrite(ledPin1, LOW);
+        digitalWrite(ledPin2, LOW);
+    }
+    if (value == 1)
+    {
+        is_ON = 1;
+        play_boot();
+        delay(500);
+        digitalWrite(ledPin1, HIGH);
+        digitalWrite(ledPin2, HIGH);
+    }
+}
+
+void when_OFF()
+{
+    if (M5.BtnA.wasPressed())
+    {
+        Blynk.virtualWrite(V4, "btnA was pressed");
+        play_shutdown();
+    }
+    if (M5.BtnB.wasPressed())
+    {
+        Blynk.virtualWrite(V4, "btnB was pressed");
+        play_boot();
+    }
+
+    if (M5.BtnC.wasPressed())
+    {
+        Blynk.virtualWrite(V4, "btnC was pressed");
+        OGreen();
+        delay(500);
+        XRed();
+    }
+
+    M5.Lcd.clear();
+    M5.Lcd.setCursor(0, 0);
+    Blynk.virtualWrite(V1, 0);
+    Blynk.virtualWrite(V2, 0);
+    Blynk.virtualWrite(V3, 0);
+}
+
+void when_ON()
+{
+    DHT();
+    Blynk.virtualWrite(V4, "-");
+}
+
+void setup()
+{
+    // Blynk
+    Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+    // Lcd
+    M5.Lcd.begin();
+    M5.Lcd.setTextSize(10);
+    M5.Lcd.setTextColor(WHITE);
+    // Speaker
+    M5.Speaker.setVolume(0);
+    // LED
+    pinMode(ledPin1, OUTPUT);
+    digitalWrite(ledPin1, LOW);
+    pinMode(ledPin2, OUTPUT);
+    digitalWrite(ledPin2, LOW);
+    // DHT
+    dht.begin();
+
+    M5.update();
+}
+
+void loop()
+{
+    Blynk.run();
+    timer.run();
+    if (is_ON == 0) when_OFF();
+    if (is_ON == 1) when_ON();
+
+    M5.update();
+}
