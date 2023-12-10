@@ -1,6 +1,6 @@
-## 2190151 Computer Programming Laboratory
+## 2190151 COMPUTER PROGRAMMING LABORATORY
 
-This is a repository containing code in 2190151 COMPPROGLAB (Chula Engineering) Semester 1/2023
+This is a repository containing code in 2190151 Computer Programming Laboratory (Chula Engineering) Semester 1/2023
 
 ***
 
