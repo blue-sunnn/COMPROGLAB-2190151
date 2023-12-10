@@ -1,0 +1,32 @@
+#include <M5Stack.h>
+
+int ledPin = 21;
+int ledState = LOW;
+int readData = 0;
+
+void setup() {
+    M5.begin();
+
+    pinMode(ledPin, OUTPUT);
+    digitalWrite(ledPin, ledState);
+    Serial.println("Exercise 4: Enter a number to light up the LED");
+    Serial.println("Please input a number.");
+    M5.update();
+}
+
+void loop() {
+    if(Serial.available() > 0) {
+        Serial.print(">");
+        readData = Serial.read();
+        Serial.write(readData);
+        Serial.println(" ");
+        if(readData >= 48 && readData <= 57) {
+            ledState = HIGH;
+            digitalWrite(ledPin, ledState);
+        } else {
+            ledState = LOW;
+            digitalWrite(ledPin, ledState);
+        }
+    }
+    M5.update();
+}
