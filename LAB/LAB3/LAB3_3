@@ -1,0 +1,27 @@
+#include <M5Stack.h>
+
+int readData = 0;
+
+void setup() {
+    M5.begin();
+
+    Serial.println("Exercise 3: Ascii Converter");
+    M5.update();
+}
+
+void loop() {
+    if(Serial.available() > 0) {
+        readData = Serial.read();
+        Serial.print("READ ");
+        Serial.write(readData);
+        Serial.print(" - ");
+        Serial.print("DEC: ");
+        Serial.print(readData, DEC);
+        Serial.print(", HEX: 0x");
+        Serial.print(readData, HEX);
+        Serial.print(", BIN: ");
+        Serial.print(readData, BIN);
+        Serial.println(" .. done");
+    }
+    M5.update();
+}
