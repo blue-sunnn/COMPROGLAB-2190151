@@ -1,0 +1,21 @@
+#include <M5Stack.h>
+
+void setup() {
+    M5.begin();
+    M5.update();
+}
+
+void myInfo() {
+    if(Serial.available() > 0) {
+        int key = Serial.read();
+        if(key == 33) {
+            Serial.println("Sun 663xxxxx21");
+            Serial.println("Not 663xxxxx21");
+        }
+    }
+}
+
+void loop() {
+    myInfo();
+    M5.update();
+}
